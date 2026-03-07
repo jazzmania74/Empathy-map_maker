@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empathy Map Generator</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+</head>
+<body>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #0066CC;
+  --primary-light: #00A5E5;
+  --primary-dark: #003D7A;
+  --bg-main: #F5F8FC;
+  --bg-white: #FFFFFF;
+  --accent-orange: #FF6B00;
+  --accent-green: #00B67A;
+  --text-primary: #1A1A2E;
+  --text-secondary: #5A6070;
+  --text-light: #8A90A0;
+  --border: #E2E8F0;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  /* Empathy Map Colors */
+  --em-see: #3b82f6;
+  --em-hear: #8b5cf6;
+  --em-think: #ec4899;
+  --em-say: #f59e0b;
+  --em-pain: #ef4444;
+  --em-gain: #10b981;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.calculator-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* ─── Header ─── */
+.calc-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  margin-bottom: 28px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.calc-header::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+.header-text { position: relative; z-index: 1; flex: 1; }
+.calc-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; }
+.calc-header .subtitle { font-size: 14px; opacity: 0.8; font-weight: 400; }
+.header-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.header-illustration {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 180px;
+  height: 160px;
+  opacity: 0.92;
+}
+
+/* ─── Section Card ─── */
+.section-card {
+  background: var(--bg-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.icon-blue { background: #E8F4FD; color: var(--primary); }
+
+/* ─── Input ─── */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-group.full-width { grid-column: 1 / -1; }
+.input-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.input-hint { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #FAFBFC;
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+  background: #fff;
+}
+.input-field::placeholder { color: var(--text-light); }
+textarea.input-field { resize: vertical; min-height: 80px; }
+
+/* ─── Button ─── */
+.calc-btn-row { display: flex; gap: 12px; margin-top: 8px; }
+.btn-calculate {
+  flex: 1; padding: 14px 28px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(0,102,204,0.3);
+}
+.btn-calculate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,102,204,0.4); }
+.btn-calculate:active { transform: translateY(0); }
+.btn-calculate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ─── Error ─── */
+.error-message {
+  display: none;
+  background: var(--danger-light);
+  border: 1px solid #fca5a5;
+  color: var(--danger);
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.error-message.active { display: block; }
+
+/* ─── Progress ─── */
+.progress-card { display: none; }
+.progress-card.visible { display: block; animation: fadeInUp 0.4s ease; }
+
+.progress-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.progress-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+}
+.progress-spinner {
+  width: 20px; height: 20px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.progress-percent { font-size: 18px; font-weight: 800; color: var(--primary); }
+
+.progress-bar-track {
+  width: 100%; height: 8px; background: #EEF2F6;
+  border-radius: 999px; overflow: hidden; margin-bottom: 18px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 999px; width: 0%; transition: width 0.5s ease;
+}
+
+.progress-steps { display: flex; flex-direction: column; gap: 10px; }
+.progress-step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 500; color: var(--text-light); transition: color 0.3s;
+}
+.progress-step.active { color: var(--primary); font-weight: 600; }
+.progress-step.done { color: var(--accent-green); }
+
+.progress-step-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+  background: #F0F2F5; color: var(--text-light);
+  border: 2px solid var(--border); transition: all 0.3s;
+}
+.progress-step.active .progress-step-icon {
+  background: #E8F4FD; border-color: var(--primary); color: var(--primary);
+}
+.progress-step.done .progress-step-icon {
+  background: #E6F9F1; border-color: var(--accent-green); color: var(--accent-green);
+}
+
+/* ─── Results ─── */
+.results-container { display: none; }
+.results-container.visible { display: block; animation: fadeInUp 0.5s ease; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ═══ Empathy Map ═══ */
+.empathy-map-wrapper {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* Map Header */
+.em-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: #fff;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.em-header-left h2 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.em-header-left p {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.em-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.em-persona-chip {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Center Persona Hub */
+.em-center-persona {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+}
+.em-center-avatar {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+.em-center-info {
+  text-align: left;
+}
+.em-center-info .persona-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.em-center-info .persona-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Map Grid - 2x2 top + 1x2 bottom */
+.em-grid-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.em-grid-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Each map cell */
+.em-cell {
+  padding: 20px 24px;
+  border: 0.5px solid var(--border);
+  min-height: 180px;
+  position: relative;
+}
+.em-cell-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.em-cell-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.em-cell-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.em-cell-subtitle {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 1px;
+}
+.em-cell-content {
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+/* Cell Colors */
+.em-cell-see .em-cell-icon { background: #DBEAFE; color: var(--em-see); }
+.em-cell-see .em-cell-title { color: var(--em-see); }
+.em-cell-see { border-top: 3px solid var(--em-see); }
+
+.em-cell-hear .em-cell-icon { background: #EDE9FE; color: var(--em-hear); }
+.em-cell-hear .em-cell-title { color: var(--em-hear); }
+.em-cell-hear { border-top: 3px solid var(--em-hear); }
+
+.em-cell-think .em-cell-icon { background: #FCE7F3; color: var(--em-think); }
+.em-cell-think .em-cell-title { color: var(--em-think); }
+.em-cell-think { border-top: 3px solid var(--em-think); }
+
+.em-cell-say .em-cell-icon { background: #FEF3C7; color: var(--em-say); }
+.em-cell-say .em-cell-title { color: var(--em-say); }
+.em-cell-say { border-top: 3px solid var(--em-say); }
+
+.em-cell-pain .em-cell-icon { background: #FEE2E2; color: var(--em-pain); }
+.em-cell-pain .em-cell-title { color: var(--em-pain); }
+.em-cell-pain { border-top: 3px solid var(--em-pain); }
+
+.em-cell-gain .em-cell-icon { background: #D1FAE5; color: var(--em-gain); }
+.em-cell-gain .em-cell-title { color: var(--em-gain); }
+.em-cell-gain { border-top: 3px solid var(--em-gain); }
+
+/* ─── Save Buttons ─── */
+.save-btn-row {
+  display: none; justify-content: center; gap: 12px;
+  margin-top: 24px; margin-bottom: 8px;
+}
+.save-btn-row.visible { display: flex; flex-wrap: wrap; }
+
+.btn-pdf {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+  background: var(--primary-dark); color: #fff; border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-pdf:hover { background: #002D5C; }
+
+.btn-html {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+  background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-html:hover { background: #0055AA; }
+
+.btn-copy {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+  background: #fff; color: var(--text-secondary); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-copy:hover { border-color: #ccc; background: #f9f9f9; }
+.btn-copy.copied { border-color: var(--accent-green); color: var(--accent-green); background: #E6F9F1; }
+
+/* ─── Footer ─── */
+.calc-footer {
+  text-align: center; padding: 24px; color: var(--text-light); font-size: 12px;
+}
+
+/* ─── Print ─── */
+@media print {
+  body { background: #fff; }
+  .calc-header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .header-illustration { display: none; }
+  .section-card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+  #input-section, .progress-card, .save-btn-row, .calc-footer { display: none !important; }
+  .section-card:has(.calc-btn-row) { display: none !important; }
+  .error-message { display: none !important; }
+  .results-container { display: block !important; }
+  .empathy-map-wrapper { box-shadow: none; break-inside: avoid; }
+  .em-header, .em-cell-icon, .em-cell-see, .em-cell-hear, .em-cell-think, .em-cell-say, .em-cell-pain, .em-cell-gain {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .input-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .calc-header { flex-direction: column; text-align: center; }
+  .header-illustration { width: 140px; height: 120px; order: -1; }
+  .em-grid-top, .em-grid-bottom { grid-template-columns: 1fr; }
+  .em-header { flex-direction: column; text-align: center; gap: 12px; }
+}
+@media (max-width: 600px) {
+  .calculator-wrap { padding: 12px 12px 40px; }
+  .calc-header { padding: 24px 20px; }
+  .calc-header h1 { font-size: 20px; }
+  .section-card { padding: 20px 16px; }
+  .save-btn-row { flex-direction: column; align-items: stretch; }
+  .header-illustration { width: 120px; height: 100px; }
+}
+</style>
+
+<div class="calculator-wrap">
+  <!-- Header -->
+  <header class="calc-header">
+    <div class="header-text">
+      <div class="header-badge">🗺️ Empathy Map Generator</div>
+      <h1>공감 지도 (Empathy Map) 생성기</h1>
+      <p class="subtitle">회사명, 제품/서비스, 고객 페르소나를 입력하면 AI가 6가지 영역의 Empathy Map을 자동 생성합니다.</p>
+    </div>
+    <div class="header-illustration">
+      <svg viewBox="0 0 200 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Center person -->
+        <circle cx="100" cy="65" r="18" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+        <circle cx="100" cy="59" r="7" fill="rgba(255,255,255,0.3)"/>
+        <path d="M87 76 Q100 87 113 76" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none"/>
+        <!-- 6 surrounding nodes -->
+        <!-- See (top-left) -->
+        <circle cx="50" cy="30" r="14" fill="rgba(59,130,246,0.25)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="50" y="34" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">👁️</text>
+        <line x1="62" y1="38" x2="85" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Hear (top-right) -->
+        <circle cx="150" cy="30" r="14" fill="rgba(139,92,246,0.25)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="150" y="34" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">👂</text>
+        <line x1="138" y1="38" x2="115" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Think (left) -->
+        <circle cx="38" cy="80" r="14" fill="rgba(236,72,153,0.25)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="38" y="84" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">💭</text>
+        <line x1="52" y1="78" x2="82" y2="67" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Say (right) -->
+        <circle cx="162" cy="80" r="14" fill="rgba(245,158,11,0.25)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="162" y="84" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">💬</text>
+        <line x1="148" y1="78" x2="118" y2="67" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Pain (bottom-left) -->
+        <circle cx="60" cy="130" r="14" fill="rgba(239,68,68,0.25)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="60" y="134" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">😣</text>
+        <line x1="70" y1="120" x2="92" y2="82" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Gain (bottom-right) -->
+        <circle cx="140" cy="130" r="14" fill="rgba(16,185,129,0.25)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="140" y="134" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">🎯</text>
+        <line x1="130" y1="120" x2="108" y2="82" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Label -->
+        <text x="100" y="168" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Pretendard, sans-serif" font-weight="600">EMPATHY MAP</text>
+      </svg>
+    </div>
+  </header>
+
+  <!-- Input Section -->
+  <section class="section-card" id="input-section">
+    <div class="section-title">
+      <span class="icon icon-blue">📋</span>
+      분석 정보 입력
+    </div>
+    <div class="input-grid">
+      <div class="input-group full-width">
+        <label class="input-label">Anthropic API Key</label>
+        <input type="password" class="input-field" id="apiKey" placeholder="sk-ant-...">
+        <span class="input-hint">API 키는 브라우저에서만 사용되며 어디에도 저장/전송되지 않습니다.</span>
+      </div>
+      <div class="input-group">
+        <label class="input-label">회사명</label>
+        <input type="text" class="input-field" id="companyName" placeholder="예: 경동나비엔, 삼성전자 등">
+      </div>
+      <div class="input-group">
+        <label class="input-label">주요 제품 / 서비스</label>
+        <input type="text" class="input-field" id="product" placeholder="예: 콘덴싱 보일러, 갤럭시 S 시리즈 등">
+      </div>
+      <div class="input-group full-width">
+        <label class="input-label">고객 페르소나</label>
+        <textarea class="input-field" id="persona" placeholder="예: 30대 후반 맞벌이 부부, 신축 아파트 입주 예정, 에너지 절약과 스마트홈에 관심이 많은 워킹맘"></textarea>
+        <span class="input-hint">타깃 고객의 특성을 구체적으로 작성할수록 더 정확한 Empathy Map을 생성합니다.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Button -->
+  <section class="section-card" style="padding:20px 32px;">
+    <div class="calc-btn-row">
+      <button class="btn-calculate" id="btnGenerate">🗺️ AI Empathy Map 생성하기</button>
+    </div>
+  </section>
+
+  <!-- Error -->
+  <div class="error-message" id="errorMsg"></div>
+
+  <!-- Progress -->
+  <section class="section-card progress-card" id="emProgress">
+    <div class="progress-header">
+      <div class="progress-title">
+        <div class="progress-spinner"></div>
+        <span>AI가 공감 지도를 분석 중...</span>
+      </div>
+      <div class="progress-percent" id="emProgressPercent">0%</div>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="emProgressBar"></div>
+    </div>
+    <div class="progress-steps">
+      <div class="progress-step" id="emStep1">
+        <div class="progress-step-icon">1</div>
+        <span>입력 데이터 검증 및 페르소나 분석 준비</span>
+      </div>
+      <div class="progress-step" id="emStep2">
+        <div class="progress-step-icon">2</div>
+        <span>AI 모델에 Empathy Map 분석 요청 전송</span>
+      </div>
+      <div class="progress-step" id="emStep3">
+        <div class="progress-step-icon">3</div>
+        <span>See & Hear 영역 분석 중</span>
+      </div>
+      <div class="progress-step" id="emStep4">
+        <div class="progress-step-icon">4</div>
+        <span>Think & Feel, Say & Do 영역 분석 중</span>
+      </div>
+      <div class="progress-step" id="emStep5">
+        <div class="progress-step-icon">5</div>
+        <span>Pain & Gain 도출 및 결과 정리</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Results ═══════════ -->
+  <div class="results-container" id="emResults">
+    <div class="empathy-map-wrapper">
+      <!-- Map Header -->
+      <div class="em-header">
+        <div class="em-header-left">
+          <h2>Empathy Map</h2>
+          <p id="emHeaderSub"></p>
+        </div>
+        <div class="em-header-right">
+          <div class="em-persona-chip" id="emPersonaChip"></div>
+        </div>
+      </div>
+
+      <!-- Center Persona -->
+      <div class="em-center-persona">
+        <div class="em-center-avatar">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" fill="#EFF6FF" stroke="#3b82f6" stroke-width="2"/>
+            <circle cx="32" cy="24" r="10" fill="#BFDBFE"/>
+            <path d="M14 52 C14 42 22 36 32 36 C42 36 50 42 50 52" fill="#BFDBFE"/>
+            <circle cx="26" cy="24" r="1.5" fill="#1e3a5f"/>
+            <circle cx="38" cy="24" r="1.5" fill="#1e3a5f"/>
+            <path d="M28 29 Q32 33 36 29" stroke="#1e3a5f" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="em-center-info">
+          <div class="persona-name" id="emPersonaName"></div>
+          <div class="persona-desc" id="emPersonaDesc"></div>
+        </div>
+      </div>
+
+      <!-- Top 2x2 Grid: See, Hear, Think&Feel, Say&Do -->
+      <div class="em-grid-top">
+        <!-- See -->
+        <div class="em-cell em-cell-see">
+          <div class="em-cell-header">
+            <div class="em-cell-icon">👁️</div>
+            <div>
+              <div class="em-cell-title">See (보다)</div>
+              <div class="em-cell-subtitle">고객은 무엇을 보고 있는가?</div>
+            </div>
+          </div>
+          <div class="em-cell-content" id="emSee"></div>
+        </div>
+        <!-- Hear -->
+        <div class="em-cell em-cell-hear">
+          <div class="em-cell-header">
+            <div class="em-cell-icon">👂</div>
+            <div>
+              <div class="em-cell-title">Hear (듣다)</div>
+              <div class="em-cell-subtitle">고객은 어떤 채널과 콘텐츠를 접하는가?</div>
+            </div>
+          </div>
+          <div class="em-cell-content" id="emHear"></div>
+        </div>
+        <!-- Think & Feel -->
+        <div class="em-cell em-cell-think">
+          <div class="em-cell-header">
+            <div class="em-cell-icon">💭</div>
+            <div>
+              <div class="em-cell-title">Think & Feel (생각과 감정)</div>
+              <div class="em-cell-subtitle">고객은 무엇을 생각하고 느끼는가?</div>
+            </div>
+          </div>
+          <div class="em-cell-content" id="emThinkFeel"></div>
+        </div>
+        <!-- Say & Do -->
+        <div class="em-cell em-cell-say">
+          <div class="em-cell-header">
+            <div class="em-cell-icon">💬</div>
+            <div>
+              <div class="em-cell-title">Say & Do (말과 행동)</div>
+              <div class="em-cell-subtitle">고객의 성향과 활동 커뮤니티는?</div>
+            </div>
+          </div>
+          <div class="em-cell-content" id="emSayDo"></div>
+        </div>
+      </div>
+
+      <!-- Bottom 1x2 Grid: Pain, Gain -->
+      <div class="em-grid-bottom">
+        <!-- Pain -->
+        <div class="em-cell em-cell-pain">
+          <div class="em-cell-header">
+            <div class="em-cell-icon">😣</div>
+            <div>
+              <div class="em-cell-title">Pain (불편/고충)</div>
+              <div class="em-cell-subtitle">고객이 겪는 불편, 두려움, 장애물은?</div>
+            </div>
+          </div>
+          <div class="em-cell-content" id="emPain"></div>
+        </div>
+        <!-- Gain -->
+        <div class="em-cell em-cell-gain">
+          <div class="em-cell-header">
+            <div class="em-cell-icon">🎯</div>
+            <div>
+              <div class="em-cell-title">Gain (기대/바람)</div>
+              <div class="em-cell-subtitle">고객이 바라는 것, 원하는 결과는?</div>
+            </div>
+          </div>
+          <div class="em-cell-content" id="emGain"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Buttons -->
+  <div class="save-btn-row" id="emSaveBtns">
+    <button class="btn-pdf" id="btnPdf">📄 PDF로 저장</button>
+    <button class="btn-html" id="btnHtml">💾 HTML로 저장</button>
+    <button class="btn-copy" id="btnCopy">📋 텍스트 복사</button>
+  </div>
+</div>
+
+<div class="calc-footer">
+  Powered by Claude Haiku 4.5 API | Empathy Map Generator | 김종혁 제작
+</div>
+
+<script>
+(function() {
+    /* ─── Progress Controller ─── */
+    var progressState = { interval: null, currentPercent: 0, targetPercent: 0 };
+
+    function setProgress(percent) {
+        progressState.targetPercent = Math.min(percent, 100);
+    }
+
+    function activateStep(stepNum) {
+        for (var i = 1; i <= 5; i++) {
+            var el = document.getElementById('emStep' + i);
+            el.classList.remove('active', 'done');
+            if (i < stepNum) {
+                el.classList.add('done');
+                el.querySelector('.progress-step-icon').textContent = '\u2713';
+            } else if (i === stepNum) {
+                el.classList.add('active');
+            }
+        }
+    }
+
+    function startProgressAnimation() {
+        progressState.currentPercent = 0;
+        progressState.targetPercent = 0;
+        document.getElementById('emProgressBar').style.width = '0%';
+        document.getElementById('emProgressPercent').textContent = '0%';
+        document.getElementById('emProgress').classList.add('visible');
+
+        for (var i = 1; i <= 5; i++) {
+            var el = document.getElementById('emStep' + i);
+            el.classList.remove('active', 'done');
+            el.querySelector('.progress-step-icon').textContent = i;
+        }
+
+        activateStep(1);
+        setProgress(10);
+
+        setTimeout(function() { activateStep(2); setProgress(25); }, 1500);
+        setTimeout(function() { activateStep(3); setProgress(45); }, 4000);
+        setTimeout(function() { activateStep(4); setProgress(65); }, 8000);
+        setTimeout(function() { setProgress(78); }, 14000);
+        setTimeout(function() { setProgress(85); }, 20000);
+        setTimeout(function() { setProgress(90); }, 28000);
+
+        progressState.interval = setInterval(function() {
+            if (progressState.currentPercent < progressState.targetPercent) {
+                progressState.currentPercent += 0.5;
+                if (progressState.currentPercent > progressState.targetPercent)
+                    progressState.currentPercent = progressState.targetPercent;
+                var rounded = Math.round(progressState.currentPercent);
+                document.getElementById('emProgressBar').style.width = rounded + '%';
+                document.getElementById('emProgressPercent').textContent = rounded + '%';
+            }
+        }, 50);
+    }
+
+    function completeProgress() {
+        activateStep(5);
+        setProgress(100);
+        setTimeout(function() {
+            var el5 = document.getElementById('emStep5');
+            el5.classList.remove('active');
+            el5.classList.add('done');
+            el5.querySelector('.progress-step-icon').textContent = '\u2713';
+            document.getElementById('emProgressBar').style.width = '100%';
+            document.getElementById('emProgressPercent').textContent = '100%';
+            progressState.currentPercent = 100;
+            clearInterval(progressState.interval);
+            setTimeout(function() {
+                document.getElementById('emProgress').classList.remove('visible');
+            }, 600);
+        }, 400);
+    }
+
+    function stopProgress() {
+        clearInterval(progressState.interval);
+        document.getElementById('emProgress').classList.remove('visible');
+    }
+
+    /* ─── API Call ─── */
+    async function callClaudeAPI(apiKey, companyName, product, persona) {
+        var systemPrompt = '당신은 UX/마케팅 전문가이자 Empathy Map 설계 전문 컨설턴트입니다.\n' +
+            '회사, 제품/서비스, 고객 페르소나 정보를 바탕으로 Empathy Map의 6가지 영역을 도출합니다.\n\n' +
+            'Empathy Map 6가지 영역:\n\n' +
+            '1. see: 고객은 무엇을 보고 있는가?\n' +
+            '   - 주변 환경에서 어떤 것들을 보는지 (경쟁사 제품, 광고, 주변인의 사용 모습, 시장 트렌드 등)\n' +
+            '   - 어떤 시각적 정보에 노출되어 있는지\n' +
+            '   - 항목별로 "• " 기호로 시작하여 5~7개 항목을 작성\n\n' +
+            '2. hear: 고객은 무엇을 듣고 있는가?\n' +
+            '   - 어떤 채널, 앱, 콘텐츠를 주로 접하는지 (유튜브, 블로그, 포털, 뉴스레터, SNS 등)\n' +
+            '   - 주변 사람들(가족, 동료, 친구)로부터 어떤 이야기를 듣는지\n' +
+            '   - 항목별로 "• " 기호로 시작하여 5~7개 항목을 작성\n\n' +
+            '3. thinkAndFeel: 고객은 무엇을 생각하고 느끼는가?\n' +
+            '   - 주요 관심사, 걱정, 꿈, 감정 상태\n' +
+            '   - 이 제품/서비스 카테고리에 대한 내면의 생각과 감정\n' +
+            '   - 항목별로 "• " 기호로 시작하여 5~7개 항목을 작성\n\n' +
+            '4. sayAndDo: 고객은 무엇을 말하고 행동하는가?\n' +
+            '   - 고객의 성향, 표현 방식, 공개적 행동\n' +
+            '   - 어떤 커뮤니티나 네트워크에서 활동하는지\n' +
+            '   - 항목별로 "• " 기호로 시작하여 5~7개 항목을 작성\n\n' +
+            '5. pain: 고객이 겪는 불편과 고충\n' +
+            '   - 두려움, 불만, 장애물, 리스크\n' +
+            '   - 이 제품/서비스를 선택할 때 겪는 어려움\n' +
+            '   - 항목별로 "• " 기호로 시작하여 5~7개 항목을 작성\n\n' +
+            '6. gain: 고객이 바라는 것과 기대\n' +
+            '   - 필요, 기대, 성공의 기준, 원하는 결과\n' +
+            '   - 이 제품/서비스로 얻고 싶은 가치\n' +
+            '   - 항목별로 "• " 기호로 시작하여 5~7개 항목을 작성\n\n' +
+            '7. personaName: 페르소나 대표 이름 (예: "김지영")\n' +
+            '8. personaDesc: 페르소나 한줄 요약 (예: "30대 맞벌이 워킹맘, 에너지 절약에 관심")\n\n' +
+            '응답은 반드시 아래 JSON 형식으로만 작성하세요. JSON 외의 텍스트는 절대 포함하지 마세요.';
+
+        var userPrompt = '다음 정보를 바탕으로 Empathy Map을 작성해 주세요.\n\n' +
+            '회사명: ' + companyName + '\n' +
+            '주요 제품/서비스: ' + product + '\n' +
+            '고객 페르소나: ' + persona + '\n\n' +
+            '반드시 아래 JSON 형식으로만 응답하세요:\n' +
+            '{\n' +
+            '  "see": "• 항목1\\n• 항목2\\n• 항목3\\n• 항목4\\n• 항목5 (5~7개 항목, 각각 구체적으로 1문장씩)",\n' +
+            '  "hear": "• 항목1\\n• 항목2\\n• 항목3\\n• 항목4\\n• 항목5 (5~7개 항목)",\n' +
+            '  "thinkAndFeel": "• 항목1\\n• 항목2\\n• 항목3\\n• 항목4\\n• 항목5 (5~7개 항목)",\n' +
+            '  "sayAndDo": "• 항목1\\n• 항목2\\n• 항목3\\n• 항목4\\n• 항목5 (5~7개 항목)",\n' +
+            '  "pain": "• 항목1\\n• 항목2\\n• 항목3\\n• 항목4\\n• 항목5 (5~7개 항목)",\n' +
+            '  "gain": "• 항목1\\n• 항목2\\n• 항목3\\n• 항목4\\n• 항목5 (5~7개 항목)",\n' +
+            '  "personaName": "페르소나 대표 이름",\n' +
+            '  "personaDesc": "페르소나 한줄 요약"\n' +
+            '}';
+
+        var response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5',
+                max_tokens: 4096,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userPrompt }]
+            })
+        });
+
+        if (!response.ok) {
+            var errData = await response.json().catch(function() { return {}; });
+            if (response.status === 401)
+                throw new Error('API 키가 유효하지 않습니다. 올바른 Claude API 키를 입력해 주세요.');
+            else if (response.status === 429)
+                throw new Error('API 요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.');
+            else
+                throw new Error((errData.error && errData.error.message) || ('API 오류가 발생했습니다. (' + response.status + ')'));
+        }
+
+        var data = await response.json();
+        var content = data.content[0].text;
+
+        var jsonStr = content;
+        var jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch) jsonStr = jsonMatch[1];
+
+        try {
+            return JSON.parse(jsonStr.trim());
+        } catch (e) {
+            var braceMatch = jsonStr.match(/\{[\s\S]*\}/);
+            if (braceMatch) return JSON.parse(braceMatch[0]);
+            throw new Error('AI 응답을 파싱할 수 없습니다. 다시 시도해 주세요.');
+        }
+    }
+
+    /* ─── Generate ─── */
+    async function generateEmpathyMap() {
+        var companyName = document.getElementById('companyName').value.trim();
+        var product = document.getElementById('product').value.trim();
+        var persona = document.getElementById('persona').value.trim();
+        var apiKey = document.getElementById('apiKey').value.trim();
+        var btn = document.getElementById('btnGenerate');
+        var errorMsg = document.getElementById('errorMsg');
+        var results = document.getElementById('emResults');
+
+        errorMsg.classList.remove('active');
+
+        if (!apiKey) { errorMsg.textContent = 'Anthropic API Key를 입력해주세요.'; errorMsg.classList.add('active'); return; }
+        if (!companyName) { errorMsg.textContent = '회사명을 입력해주세요.'; errorMsg.classList.add('active'); return; }
+        if (!product) { errorMsg.textContent = '주요 제품/서비스를 입력해주세요.'; errorMsg.classList.add('active'); return; }
+        if (!persona) { errorMsg.textContent = '고객 페르소나를 입력해주세요.'; errorMsg.classList.add('active'); return; }
+
+        localStorage.setItem('em_gen_api_key', apiKey);
+
+        results.classList.remove('visible');
+        document.getElementById('emSaveBtns').classList.remove('visible');
+        btn.disabled = true;
+
+        startProgressAnimation();
+
+        try {
+            var result = await callClaudeAPI(apiKey, companyName, product, persona);
+
+            completeProgress();
+
+            setTimeout(function() {
+                document.getElementById('emHeaderSub').textContent = companyName + ' - ' + product;
+                document.getElementById('emPersonaChip').textContent = persona.length > 30 ? persona.substring(0, 30) + '...' : persona;
+                document.getElementById('emPersonaName').textContent = result.personaName || '';
+                document.getElementById('emPersonaDesc').textContent = result.personaDesc || '';
+
+                document.getElementById('emSee').textContent = result.see;
+                document.getElementById('emHear').textContent = result.hear;
+                document.getElementById('emThinkFeel').textContent = result.thinkAndFeel;
+                document.getElementById('emSayDo').textContent = result.sayAndDo;
+                document.getElementById('emPain').textContent = result.pain;
+                document.getElementById('emGain').textContent = result.gain;
+
+                results.classList.add('visible');
+                document.getElementById('emSaveBtns').classList.add('visible');
+                results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 1100);
+        } catch (err) {
+            stopProgress();
+            errorMsg.textContent = err.message;
+            errorMsg.classList.add('active');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    /* ─── Init ─── */
+    var savedKey = localStorage.getItem('em_gen_api_key');
+    if (savedKey) document.getElementById('apiKey').value = savedKey;
+
+    document.getElementById('btnGenerate').addEventListener('click', generateEmpathyMap);
+
+    document.getElementById('apiKey').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('companyName').focus();
+    });
+    document.getElementById('companyName').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('product').focus();
+    });
+    document.getElementById('product').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('persona').focus();
+    });
+    document.getElementById('persona').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generateEmpathyMap(); }
+    });
+
+    /* ─── Save: PDF ─── */
+    document.getElementById('btnPdf').addEventListener('click', function() {
+        window.print();
+    });
+
+    /* ─── Save: HTML ─── */
+    document.getElementById('btnHtml').addEventListener('click', function() {
+        var resultsEl = document.getElementById('emResults');
+        if (!resultsEl) return;
+
+        var company = document.getElementById('companyName').value.trim();
+        var dateStr = new Date().toLocaleString('ko-KR');
+        var styles = document.querySelector('style').outerHTML;
+        var fontLink = '<link rel="preconnect" href="https://cdn.jsdelivr.net"><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">';
+
+        var htmlContent = '<!DOCTYPE html>\n<html lang="ko">\n<head>\n' +
+            '<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+            '<title>Empathy Map - ' + company + ' (' + dateStr + ')</title>\n' +
+            fontLink + '\n' + styles + '\n</head>\n<body>\n' +
+            '<div class="calculator-wrap">\n' +
+            '<header class="calc-header">\n' +
+            '  <div class="header-text">\n' +
+            '    <div class="header-badge">\uD83D\uDDFA\uFE0F Empathy Map Generator</div>\n' +
+            '    <h1>\uACF5\uAC10 \uC9C0\uB3C4 (Empathy Map) \uC0DD\uC131\uAE30</h1>\n' +
+            '    <p class="subtitle">\uD68C\uC0AC\uBA85: ' + company + ' | \uBD84\uC11D\uC77C\uC2DC: ' + dateStr + '</p>\n' +
+            '  </div>\n' +
+            '</header>\n' +
+            '<div style="margin-top:20px;">' + resultsEl.innerHTML + '</div>\n' +
+            '</div>\n' +
+            '<div class="calc-footer">Powered by Claude Haiku 4.5 API | Empathy Map Generator</div>\n' +
+            '</body>\n</html>';
+
+        var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'EmpathyMap_' + company + '_' + new Date().toISOString().slice(0,10) + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    /* ─── Save: Copy ─── */
+    document.getElementById('btnCopy').addEventListener('click', function() {
+        var company = document.getElementById('companyName').value.trim();
+        var product = document.getElementById('product').value.trim();
+        var persona = document.getElementById('persona').value.trim();
+
+        var text = '=== ' + company + ' - Empathy Map ===\n';
+        text += '\uC81C\uD488/\uC11C\uBE44\uC2A4: ' + product + '\n';
+        text += '\uACE0\uAC1D \uD398\uB974\uC18C\uB098: ' + persona + '\n';
+        text += '\uBD84\uC11D \uC77C\uC2DC: ' + new Date().toLocaleString('ko-KR') + '\n';
+        text += '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n';
+
+        var fields = [
+            ['emSee', 'See (\uBCF4\uB2E4)'],
+            ['emHear', 'Hear (\uB4E3\uB2E4)'],
+            ['emThinkFeel', 'Think & Feel (\uC0DD\uAC01\uACFC \uAC10\uC815)'],
+            ['emSayDo', 'Say & Do (\uB9D0\uACFC \uD589\uB3D9)'],
+            ['emPain', 'Pain (\uBD88\uD3B8/\uACE0\uCDA9)'],
+            ['emGain', 'Gain (\uAE30\uB300/\uBC14\uB78C)']
+        ];
+        fields.forEach(function(f) {
+            text += '[' + f[1] + ']\n' + document.getElementById(f[0]).textContent + '\n\n';
+        });
+
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('btnCopy');
+            btn.classList.add('copied');
+            btn.innerHTML = '\u2705 \uBCF5\uC0AC \uC644\uB8CC!';
+            setTimeout(function() {
+                btn.classList.remove('copied');
+                btn.innerHTML = '\uD83D\uDCCB \uD14D\uC2A4\uD2B8 \uBCF5\uC0AC';
+            }, 2000);
+        }).catch(function() {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            var btn = document.getElementById('btnCopy');
+            btn.classList.add('copied');
+            btn.innerHTML = '\u2705 \uBCF5\uC0AC \uC644\uB8CC!';
+            setTimeout(function() {
+                btn.classList.remove('copied');
+                btn.innerHTML = '\uD83D\uDCCB \uD14D\uC2A4\uD2B8 \uBCF5\uC0AC';
+            }, 2000);
+        });
+    });
+})();
+</script>
+</body>
+</html>
